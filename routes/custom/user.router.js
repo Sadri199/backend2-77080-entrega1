@@ -4,9 +4,12 @@ import jwt from 'jsonwebtoken'
 
 import env from "../../config/env.config.js"
 import { User } from "../../config/models/user.model.js"
-import { checkLogged } from "../../middleware/auth.middleware.js"
+import { Cart } from "../../config/models/cart.model.js"
+import { checkLogged, checkJWTCookie } from "../../middleware/auth.middleware.js"
+import { checkRoles } from "../../middleware/policies.middleware.js"
 
 const jwtSecret = env.JWT_SECRET
+const port = env.PORT
 
 
 export default class UserRouter {
@@ -15,20 +18,14 @@ export default class UserRouter {
         this.router.get("/", this.getHome)
         this.router.post("/register", this.register)
         this.router.post("/login", checkLogged, this.login)
-    }
-
-    makeURL (req) {
-        const port = env.PORT
-        const host = req.hostname
-        const url = req.originalUrl
-        const fullUrl = `http://${host}:${port}${url}`
-        console.log(`${fullUrl} a ver`)
-        return fullUrl
+        this.router.get("/current", checkJWTCookie, checkRoles("user", "admin"), this.getCurrentUser)
     }
 
     getHome = (req, res) => {
         try{
-            const path = this.makeURL(req)
+            const host = req.hostname
+            const url = req.originalUrl
+            const path = `http://${host}:${port}${url}`
 
             res.status(200).json({message: "Welcome to ALLMIND's Database API. ALLMIND exists for all Mercenaries. Here are the available Endpoints for unauthenticated users:",
                 availableEndpoints: [path+"register", path+"login"]
@@ -40,14 +37,16 @@ export default class UserRouter {
 
     async register (req, res) {
         try{
+            const host = req.hostname
+            const url = req.originalUrl
+            const path = `http://${host}:${port}${url}`
+
             const {first_name, last_name, email, age, password, role} = req.body
             if(!first_name || !last_name || !email || !password){
                 return res.status(400).json({error: "One or more mandatory values are missing!",
                     mandatoryFields: ["first_name", "last_name", "email", "password"],
                     optionalFields: ["age"]
-                })
-                return
-            }
+                })}
 
             const emailCheck = await User.findOne({email})
             if (emailCheck)
@@ -57,6 +56,9 @@ export default class UserRouter {
             const user = new User({first_name, last_name, email, password:hash, age, role})
             await user.save()
 
+            const cart = new Cart ({products: [], user: user._id})
+            await cart.save()
+
             res.status(201).json({message: "Mercenary registered correctly!",
                 user: {
                     first_name,
@@ -65,7 +67,8 @@ export default class UserRouter {
                     email,
                     age,
                     role
-                }
+                },
+                availableEndpoints: path.replace("register", "login")
             })
         } catch (err) {
             res.status(500).json({error: err.message})
@@ -74,6 +77,10 @@ export default class UserRouter {
 
     async login (req, res){
         try{
+            const host = req.hostname
+            const url = req.originalUrl
+            const path = `http://${host}:${port}${url}`
+            
             const {email, password} = req.body
             if(!email || !password){
                 return res.status(400).json({error: "Missing Credentials!",
@@ -102,8 +109,43 @@ export default class UserRouter {
             })
 
             res.status(200).json({message: `Credentials confirmed for callsign: ${user.first_name+" "+user.last_name}! You have logged in successfully!`,
-            token: "Check your cookies for the token!"})
+            token: "Check your cookies for the token!",
+            availableEndpoints: path.replace("login", "current")})
         } catch (err){
+            res.status(500).json({error: err.message})
+        }
+    }
+
+    async getCurrentUser (req, res){
+        try{
+            const host = req.hostname
+            const url = req.originalUrl
+            const path = `http://${host}:${port}${url}`
+
+            const user = await User.findById(req.user._id)
+            if (!user) 
+                return res.status(404).json({error: "User not found in Database! Check your token or login again!"})
+
+            const cart = await Cart.findOne({user: req.user._id}).populate({
+                path: "user"
+            })
+
+            const {first_name, last_name, email, age, role} = user
+            const {products} = cart
+
+            if(user.role == "admin"){
+                const {first_name, last_name, email, age, role, _id, createdAt, updatedAt} = user
+                return res.status(200).json({message: `Callsign: ${first_name+" "+last_name} you have been given Administrative Access, validate your information with discretion!`,
+                superUser: {first_name, last_name, email, age, role, _id, createdAt, updatedAt},
+                cart: {products}})
+                // endpoint logout
+            }
+
+            res.status(200).json({message: `Callsign: ${first_name+" "+last_name} this is your information!`,
+            userData: {first_name, last_name, email, age, role},
+            cart: {products}})
+            // endpoint logout
+        } catch (err) {
             res.status(500).json({error: err.message})
         }
     }

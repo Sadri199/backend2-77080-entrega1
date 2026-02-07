@@ -149,11 +149,13 @@ SOFTWARE.
         [x] - Logger
         [x] - Auth
         [x] - Policies
-    [ ] - Make routing.
+    [x] - Make routing.
         [x] - Make "home" GET that explains possible Endpoints. -> Changed to Custom Router
         [x] - Make "Register" POST
+            [x] - Create cart at the same time than user
         [x] - Make "login" POST
-        [ ] - Make "current" GET that gives information about the logged user
-        [ ] - Make "logout" POST that erases the cookie
+        [x] - Make "current" GET that gives information about the logged user
+            [x] - Populate and return user and cart in response
+        [ ] - Make "logout" POST that erases the cookie (Opcional)
 
 [ ] - Test API.
