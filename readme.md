@@ -1,6 +1,7 @@
 # Backend 2 -> Entrega 1
 
-An API built with **Node.js** and **Express**, featuring secure user authentication and database integration. This project implements industry-standard security practices including password hashing and token-based authorization.
+An API inspired by the videogame Armored Core 6 built with **Node.js** and **Express**, featuring secure user authentication and database integration. This project implements industry-standard security practices including password hashing and token-based authorization.
+
 
 ---
 
@@ -124,6 +125,7 @@ SOFTWARE.
 ## 🧾 Credits
 
 - Google Gemini for making this readme.md (I'm sorry, I will never have the patience to fully learn Markdown ╰（‵□′）╯ ).
+- Character "ALLMIND" featured in this project belongs to Armored Core VI: Fires of Rubicon. All rights belong to FromSoftware and Bandai Namco Entertainment. This is a non-commercial fan project created out of appreciation for the series.
 
 ---
 

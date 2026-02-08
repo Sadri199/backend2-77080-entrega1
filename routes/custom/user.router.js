@@ -29,7 +29,7 @@ export default class UserRouter {
             const path = `http://${host}:${port}${url}`
 
             res.status(200).json({message: "Welcome to ALLMIND's Database API. ALLMIND exists for all Mercenaries. Here are the available Endpoints for unauthenticated users:",
-                availableEndpoints: [path+"register", path+"login"]
+                availableEndpoints: [path+"/register", path+"/login"]
             })
         } catch (err){
             res.status(500).json({error: err.message})
@@ -139,13 +139,13 @@ export default class UserRouter {
                 return res.status(200).json({message: `Callsign: ${first_name+" "+last_name} you have been given Administrative Access, validate your information with discretion!`,
                 superUser: {first_name, last_name, email, age, role, _id, createdAt, updatedAt},
                 cart: {products: cart?.products},
-                availableEndpoints: path.replace("login", "logout")})
+                availableEndpoints: path.replace("current", "logout")})
             }
 
             res.status(200).json({message: `Callsign: ${first_name+" "+last_name} this is your information!`,
             userData: {first_name, last_name, email, age, role},
             cart: {products: cart?.products},
-            availableEndpoints: path.replace("login", "logout")})
+            availableEndpoints: path.replace("current", "logout")})
         } catch (err) {
             res.status(500).json({error: err.message})
         }
